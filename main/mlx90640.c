@@ -1,27 +1,47 @@
 #include "mlx90640.h"
 #include "config.h"
-#include "i2c.h"
 
-#include "driver/i2c_master.h"
-#include "esp_err.h"
+#include "MLX90640_API.h"
+#include "MLX90640_I2C_Driver.h"
 
-static i2c_master_dev_handle_t mlx90640_handle;
+#include <stdio.h>
+#include <stdint.h>
+
+static uint16_t eeData[832];
+static paramsMLX90640 mlx_params;
 
 void mlx90640_iniciar(void)
 {
-    i2c_master_bus_handle_t bus = i2c_get_bus();
+    printf("INICIANDO MLX90640...\n");
 
-    i2c_device_config_t config_sensor = {
-        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address = MLX90640_ADDR,
-        .scl_speed_hz = 100000
-    };
+    MLX90640_I2CInit();
 
-    ESP_ERROR_CHECK(
-        i2c_master_bus_add_device(
-            bus,
-            &config_sensor,
-            &mlx90640_handle
-        )
+    printf("Lendo EEPROM do MLX90640...\n");
+
+    int resultado = MLX90640_DumpEE(
+        MLX90640_ADDR,
+        eeData
     );
+
+    if (resultado != MLX90640_NO_ERROR)
+    {
+        printf("ERRO AO LER EEPROM: %d\n", resultado);
+        return;
+    }
+
+    printf("EEPROM LIDA COM SUCESSO!\n");
+
+    resultado = MLX90640_ExtractParameters(
+        eeData,
+        &mlx_params
+    );
+
+    if (resultado != MLX90640_NO_ERROR)
+    {
+        printf("ERRO AO EXTRAIR CALIBRACAO: %d\n", resultado);
+        return;
+    }
+
+    printf("CALIBRACAO EXTRAIDA COM SUCESSO!\n");
+    printf("MLX90640 PRONTO PARA LEITURA TERMICA!\n");
 }

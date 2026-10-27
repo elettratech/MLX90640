@@ -12,12 +12,16 @@ void app_main(void)
 
     i2c_iniciar();
 
+    printf("I2C INICIADO!\n");
+
     mlx90640_iniciar();
+
+    printf("TESTE DO MLX TERMINOU!\n");
+
+    printf("ELETTRA FUNCIONANDO!\n");
 
     while (1)
     {
-        printf("ELETTRA FUNCIONANDO!\n");
-
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
